@@ -8,7 +8,7 @@
 #   separateLines: include a key (value doesn't matter) to create a file for each row instead of a file for all rows returned from the API call.
 #
 # Use the following tests from the Cloud Function UI:
-#   {"message":{"projectId":"datapipe-1","separateLines":"true","topic":"flightstream","bucket":"flight_api_data","path":"test"}}
+#   {"message":{"projectId":"bdo-1","separateLines":"true","bucket":"mgmt59000_data","path":"opensky2"}}
 
 # OpenSky API is provided free of charge for non-commercial use.
 # See: https://opensky-network.org/
