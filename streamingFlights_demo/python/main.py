@@ -18,8 +18,6 @@ import json
 from google.cloud import storage
 import datetime
 
-from google.cloud.pubsub_v1 import PublisherClient
-
 from opensky_api import OpenSkyApi
 
 class ExampleRequest(object):
@@ -111,42 +109,6 @@ class Storage(object):
         self._client.blob(fullpath).upload_from_string('\n'.join(rows))
       except Exception as ex:
         print(json.dumps({'log': 'ERROR Error writing to {path}: {error}'.format(path=fullpath, error=str(ex))}))
-
-class Publish(object):
-  _increment = 0
-  
-  def _createKey(self):
-    '''
-    :return: returns a unique key for each entry.
-    '''
-    key = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_' + str(self._increment)
-    self._increment += 1
-    return key
-  
-  def __init__(self, projectId, topic, separateLines=False):
-    self._topicPath='projects/{project}/topics/{topic}'.format(project=projectId,topic=topic)
-    self._publisher = PublisherClient()
-    self._separateLines = separateLines
-  
-  def process(self, data):
-    '''
-    Will write data as a series of JSON objects, one per line. NOTE that this is not a JSON list of JSON objects. Big Query will ingest the series of JSON objects on separate lines.
-    :param data: a list of dicts.
-    '''
-    rows = map(lambda row: json.dumps(row), data)
-    if self._separateLines:
-      for row in rows:
-        key=self._createKey()
-        try:
-          self._publisher.publish(self._topicPath, data=json.dumps(row).encode('utf-8'), query=key)
-        except Exception as ex:
-          print(json.dumps({'log': 'ERROR Error publishing {key} to {topic}: {error}'.format(key=key,topic=self._topicPath, error=str(ex))}))
-    else:
-      key=self._createKey()
-      try:
-        self._publisher.publish(self._topicPath, data=json.dumps('\n'.join(rows)).encode('utf-8'), query=self._createKey())
-      except Exception as ex:
-        print(json.dumps({'log': 'ERROR Error publishing {key} to {topic}: {error}'.format(key=key, topic=self._topicPath, error=str(ex))}))
 
 def _convertTimestamp(timestamp):
   '''
