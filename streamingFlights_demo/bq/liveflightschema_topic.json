@@ -1,0 +1,122 @@
+[
+    {
+        "name": "event_timestamp",
+        "type": "TIMESTAMP",
+        "description": "Pub/Sub event timestamp",
+        "mode": "REQUIRED"
+    },
+    {
+        "name": "squawk",
+        "description": "",
+        "mode": "NULLABLE",
+        "type": "INT64"
+    },
+    {
+        "name": "spi",
+        "description": "",
+        "mode": "NULLABLE",
+        "type": "BOOL"
+    },
+    {
+        "name": "baro_altitude",
+        "description": "",
+        "mode": "NULLABLE",
+        "type": "FLOAT64"
+    },
+    {
+        "name": "vertical_rate",
+        "description": "",
+        "mode": "NULLABLE",
+        "type": "FLOAT64"
+    },
+    {
+        "name": "icao24",
+        "description": "",
+        "mode": "NULLABLE",
+        "type": "STRING"
+    },
+    {
+        "name": "on_ground",
+        "description": "",
+        "mode": "NULLABLE",
+        "type": "BOOL"
+    },
+    {
+        "name": "heading",
+        "description": "",
+        "mode": "NULLABLE",
+        "type": "FLOAT64"
+    },
+    {
+        "name": "position_source",
+        "description": "",
+        "mode": "NULLABLE",
+        "type": "INT64"
+    },
+    {
+        "name": "velocity",
+        "description": "",
+        "mode": "NULLABLE",
+        "type": "FLOAT64"
+    },
+    {
+        "name": "longitude",
+        "description": "",
+        "mode": "NULLABLE",
+        "type": "FLOAT64"
+    },
+    {
+        "name": "altitude",
+        "description": "",
+        "mode": "NULLABLE",
+        "type": "FLOAT64"
+    },
+    {
+        "name": "latitude",
+        "description": "",
+        "mode": "NULLABLE",
+        "type": "FLOAT64"
+    },
+    {
+        "name": "callsign",
+        "description": "",
+        "mode": "NULLABLE",
+        "type": "STRING"
+    },
+    {
+        "name": "time",
+        "description": "",
+        "mode": "NULLABLE",
+        "type": "INT64"
+    },
+    {
+        "name": "contact",
+        "description": "",
+        "mode": "NULLABLE",
+        "type": "INT64"
+    },
+    {
+        "name": "origin",
+        "description": "",
+        "mode": "NULLABLE",
+        "type": "STRING"
+    },
+    {
+        "name": "time_bq",
+        "description": "",
+        "mode": "NULLABLE",
+        "type": "DATETIME"
+    },
+    {
+        "name": "contact_bq",
+        "description": "",
+        "mode": "NULLABLE",
+        "type": "DATETIME"
+    },
+    {
+        "name": "query_time_bq",
+        "description": "",
+        "mode": "NULLABLE",
+        "type": "DATETIME"
+    }
+]
