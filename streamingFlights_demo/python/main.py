@@ -8,7 +8,7 @@
 #   separateLines: include a key (value doesn't matter) to create a file for each row instead of a file for all rows returned from the API call.
 #
 # Use the following tests from the Cloud Function UI:
-#   {"message":{"projectId":"bdo-1","separateLines":"true","bucket":"mgmt59000_data","path":"opensky2"}}
+#   {"message":{"projectId":"datapipe-1","separateLines":"true","topic":"flightstream","bucket":"flight_api_data","path":"test"}}
 
 # OpenSky API is provided free of charge for non-commercial use.
 # See: https://opensky-network.org/
@@ -18,14 +18,24 @@ import json
 from google.cloud import storage
 import datetime
 
+from google.cloud.pubsub_v1 import PublisherClient
+
 from opensky_api import OpenSkyApi
 
 class ExampleRequest(object):
   args = None
   
   # (args.projectId,args.query,limit=args.limit,topic=args.topic,debug=args.log)
-  def __init__(self, debug=None, bucket=None, path=None,separateLines=False):
-    message = {'bucket': bucket,'path': path}
+  def __init__(self, projectId, query, limit=None, topic=None, debug=None, bucket=None, path=None,separateLines=False):
+    if type(query) == str:
+      if not query.startswith('"'): query = '"' + query + '"'
+    else:
+      query = json.dumps(query)
+    message = {'query': query, 'limit': limit if limit is not None else '',
+               'projectId': projectId,
+               'topic': topic if topic is not None else '',
+               'bucket': bucket,
+               'path': path}
     if separateLines: message['separateLines']=True
     self.args = {'message': json.dumps(message)}
   
@@ -110,6 +120,42 @@ class Storage(object):
       except Exception as ex:
         print(json.dumps({'log': 'ERROR Error writing to {path}: {error}'.format(path=fullpath, error=str(ex))}))
 
+class Publish(object):
+  _increment = 0
+  
+  def _createKey(self):
+    '''
+    :return: returns a unique key for each entry.
+    '''
+    key = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '_' + str(self._increment)
+    self._increment += 1
+    return key
+  
+  def __init__(self, projectId, topic, separateLines=False):
+    self._topicPath='projects/{project}/topics/{topic}'.format(project=projectId,topic=topic)
+    self._publisher = PublisherClient()
+    self._separateLines = separateLines
+  
+  def process(self, data):
+    '''
+    Will write data as a series of JSON objects, one per line. NOTE that this is not a JSON list of JSON objects. Big Query will ingest the series of JSON objects on separate lines.
+    :param data: a list of dicts.
+    '''
+    rows = map(lambda row: json.dumps(row), data)
+    if self._separateLines:
+      for row in rows:
+        key=self._createKey()
+        try:
+          self._publisher.publish(self._topicPath, data=json.dumps(row).encode('utf-8'), query=key)
+        except Exception as ex:
+          print(json.dumps({'log': 'ERROR Error publishing {key} to {topic}: {error}'.format(key=key,topic=self._topicPath, error=str(ex))}))
+    else:
+      key=self._createKey()
+      try:
+        self._publisher.publish(self._topicPath, data=json.dumps('\n'.join(rows)).encode('utf-8'), query=self._createKey())
+      except Exception as ex:
+        print(json.dumps({'log': 'ERROR Error publishing {key} to {topic}: {error}'.format(key=key, topic=self._topicPath, error=str(ex))}))
+
 def _convertTimestamp(timestamp):
   '''
   Convert from system timestamp into a format for time that Big Query can understand.
@@ -171,7 +217,7 @@ def _convertRow(flightState, queryTime):
   
   return row
 
-def _scavengeRows(separateLines=False,bucket=None,path=None,debug=None):
+def _scavengeRows(separateLines=False,bucket=None,path=None,projectId=None,topic=None,debug=None):
   queryTime = datetime.datetime.now().timestamp()
   if debug is not None:
     print(json.dumps({'log': 'Scavenging rows at {queryTime}.'.format(queryTime=str(queryTime))}))
@@ -198,6 +244,12 @@ def _scavengeRows(separateLines=False,bucket=None,path=None,debug=None):
           'log': 'Stored {num:d} records in folder {path} of bucket {bucket}'.format(
             num=len(records), path=path, bucket=bucket)}))
       
+      if topic is not None and projectId is not None:
+        publisher=Publish(projectId,topic,separateLines=separateLines)
+        publisher.process(records)
+        if debug is not None: print(json.dumps({
+          'log': 'Published {num:d} records to topic {topic}'.format(
+            num=len(records), topic=topic)}))
   else:
     if debug is not None: print(json.dumps({'log': 'No flight records were found.'}))
 
@@ -215,6 +267,12 @@ def main(request):
   debug = messageJSON.get('debug', 10)
   if debug == 0: debug = None
 
+  projectId = messageJSON.get('projectId', '')
+  if projectId == '': projectId = None
+
+  topic = messageJSON.get('topic', '')
+  if topic == '': topic = None
+
   bucket = messageJSON.get('bucket', None)
   path = messageJSON.get('path', None)
   
@@ -222,9 +280,11 @@ def main(request):
   
   if debug is not None:
     print(json.dumps({'log': 'Parsed message is ' + json.dumps(messageJSON)}))
+    if topic is not None:
+      print(json.dumps({'log':'Will publish to projectID:{project} topic:{topic}'.format(project=projectId,topic=topic)}))
     if bucket is not None:
       print(json.dumps({'log':'Will store in GCS at bucket:{bucket} path:{path}'.format(bucket=bucket,path=path)}))
-  _scavengeRows(separateLines=separateLines,bucket=bucket,path=path,debug=debug)
+  _scavengeRows(separateLines=separateLines,bucket=bucket,path=path,projectId=projectId,topic=topic,debug=debug)
 
 if __name__ == '__main__':
   # To call from the command line, provide two arguments: query, limit.
@@ -238,11 +298,18 @@ if __name__ == '__main__':
                       default=None)
   parser.add_argument('-path',help='Specify a path within the given bucket to use for storing the data.',default=None)
 
+  parser.add_argument('-projectId',
+                      help='Specify the Google cloud project ID (required when publishing to pub/sub.).',
+                      default=None)
+  parser.add_argument('-topic', help='Specify a pub/sub topic to publish to if you want the output to go to pub/sub.',
+                      default=None)
+
   parser.add_argument('-log', help='Print out log statements.', default=None)
   
   # parse the arguments
   args = parser.parse_args()
   
-  exampleRequest = ExampleRequest(debug=args.log,bucket=args.bucket,path=args.path,separateLines=args.separateLines)
+  exampleRequest = ExampleRequest(args.projectId, args.query, limit=args.limit, topic=args.topic, debug=args.log,
+                                  bucket=args.bucket,separateLines=args.separateLines)
   
   main(exampleRequest)
