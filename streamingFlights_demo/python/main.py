@@ -20,6 +20,8 @@
 # For the Python API, see: https://opensky-network.org/apidoc/python.html
 import argparse
 import json
+import traceback
+
 from google.cloud import storage
 import datetime
 
@@ -152,16 +154,18 @@ class Publish(object):
       for row in rows:
         key=self._createKey()
         try:
-          print('Publishing: '+json.dumps(row,sort_keys=True).encode('utf-8'))
+          print('Publishing: '+json.dumps(row,sort_keys=True))
           self._publisher.publish(self._topicPath, data=json.dumps(row,sort_keys=True).encode('utf-8'), query=key)
         except Exception as ex:
           print(json.dumps({'log': 'ERROR Error publishing {key} to {topic}: {error}'.format(key=key,topic=self._topicPath, error=str(ex))}))
+          traceback.print_exc()
     else:
       key=self._createKey()
       try:
         self._publisher.publish(self._topicPath, data=json.dumps('\n'.join(rows),sort_keys=True).encode('utf-8'), query=self._createKey())
       except Exception as ex:
         print(json.dumps({'log': 'ERROR Error publishing {key} to {topic}: {error}'.format(key=key, topic=self._topicPath, error=str(ex))}))
+        traceback.print_exc()
 
 def _convertTimestamp(timestamp):
   '''
