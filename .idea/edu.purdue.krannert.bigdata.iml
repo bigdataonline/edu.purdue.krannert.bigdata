@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="PYTHON_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/streamingFlights_demo/python" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/wordcount_lab3b/python" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/bigdata_venv" />
+    </content>
+    <orderEntry type="jdk" jdkName="Python 3.8 (edu.purdue.krannert.bigdata)" jdkType="Python SDK" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>

@@ -1,0 +1,143 @@
+{
+  "type": "record",
+  "namespace": "flights",
+  "name": "streamRecord",
+  "fields": [
+    {
+      "name": "squawk",
+      "type": [
+        "null",
+        "long"
+      ]
+    },
+    {
+      "name": "spi",
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    {
+      "name": "baro_altitude",
+      "type": [
+        "null",
+        "double"
+      ]
+    },
+    {
+      "name": "vertical_rate",
+      "type": [
+        "null",
+        "double"
+      ]
+    },
+    {
+      "name": "icao24",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    {
+      "name": "on_ground",
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    {
+      "name": "heading",
+      "type": [
+        "null",
+        "double"
+      ]
+    },
+    {
+      "name": "position_source",
+      "type": [
+        "null",
+        "long"
+      ]
+    },
+    {
+      "name": "velocity",
+      "type": [
+        "null",
+        "double"
+      ]
+    },
+    {
+      "name": "longitude",
+      "type": [
+        "null",
+        "double"
+      ]
+    },
+    {
+      "name": "altitude",
+      "type": [
+        "null",
+        "double"
+      ]
+    },
+    {
+      "name": "latitude",
+      "type": [
+        "null",
+        "double"
+      ]
+    },
+    {
+      "name": "callsign",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    {
+      "name": "time",
+      "type": [
+        "null",
+        "long"
+      ]
+    },
+    {
+      "name": "contact",
+      "type": [
+        "null",
+        "long"
+      ]
+    },
+    {
+      "name": "origin",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    {
+      "name": "time_bq",
+      "doc": "NOTE formatted date-time string",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    {
+      "name": "contact_bq",
+      "doc": "NOTE formatted date-time string",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    {
+      "name": "query_time_bq",
+      "doc": "NOTE formatted date-time string",
+      "type": [
+        "null",
+        "string"
+      ]
+    }
+  ]
+}
