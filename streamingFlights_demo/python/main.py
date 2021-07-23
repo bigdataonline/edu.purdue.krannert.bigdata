@@ -26,6 +26,7 @@ from google.cloud import storage
 import datetime
 
 from google.cloud.pubsub_v1 import PublisherClient
+from google.oauth2 import service_account
 
 from opensky_api import OpenSkyApi
 
@@ -100,9 +101,18 @@ class Storage(object):
     self._increment += 1
     return filename
   
-  def __init__(self, bucket, folder=None, separateLines=False):
+  def __init__(self, bucket, folder=None, separateLines=False, project=None, credentials=None):
     self._bucket = bucket
-    self._client = storage.Client().bucket(self._bucket)
+    if credentials is not None:
+      gcClient=storage.Client(
+        project=credentials['project_id'],
+        credentials=service_account.Credentials.from_service_account_info(credentials)
+      )
+    elif project is not None:
+      gcClient=storage.Client(project=project)
+    else:
+      gcClient=storage.Client()
+    self._client = gcClient.bucket(self._bucket)
     self._path = ('flightData' if folder is None else folder)
     self._separateLines = separateLines
   
@@ -139,9 +149,14 @@ class Publish(object):
     self._increment += 1
     return key
   
-  def __init__(self, projectId, topic, separateLines=False):
+  def __init__(self, projectId, topic, separateLines=False, credentials=None):
     self._topicPath='projects/{project}/topics/{topic}'.format(project=projectId,topic=topic)
-    self._publisher = PublisherClient()
+    if credentials is not None:
+      self._publisher=PublisherClient(
+        credentials=service_account.Credentials.from_service_account_info(credentials)
+      )
+    else:
+      self._publisher=PublisherClient()
     self._separateLines = separateLines
   
   def process(self, data):
@@ -149,20 +164,26 @@ class Publish(object):
     Will write data as a series of JSON objects, one per line. NOTE that this is not a JSON list of JSON objects. Big Query will ingest the series of JSON objects on separate lines.
     :param data: a list of dicts.
     '''
-    rows = map(lambda row: json.dumps(row), data)
+    rows = map(lambda row: json.dumps(row,sort_keys=True), data)
     if self._separateLines:
+      futures=[]
       for row in rows:
         key=self._createKey()
         try:
-          print('Publishing: '+json.dumps(row,sort_keys=True))
-          self._publisher.publish(self._topicPath, data=json.dumps(row,sort_keys=True).encode('utf-8'), query=key)
+          print('Publishing: '+row)
+          futures.append(self._publisher.publish(self._topicPath, data=row.encode('utf-8'), query=key))
         except Exception as ex:
           print(json.dumps({'log': 'ERROR Error publishing {key} to {topic}: {error}'.format(key=key,topic=self._topicPath, error=str(ex))}))
           traceback.print_exc()
+      for index,futurePublish in enumerate(futures):
+        try:
+          print('Published message ID: '+str(futurePublish.result()))
+        except Exception as ex:
+          print('Error while publishing message #'+str(index)+': '+str(ex))
     else:
       key=self._createKey()
       try:
-        self._publisher.publish(self._topicPath, data=json.dumps('\n'.join(rows),sort_keys=True).encode('utf-8'), query=self._createKey())
+        self._publisher.publish(self._topicPath, data=('\n'.rows).encode('utf-8'), query=self._createKey())
       except Exception as ex:
         print(json.dumps({'log': 'ERROR Error publishing {key} to {topic}: {error}'.format(key=key, topic=self._topicPath, error=str(ex))}))
         traceback.print_exc()
@@ -188,15 +209,23 @@ def _convertTimestampAvro(timestamp):
   '''
   if timestamp is not None:
     try:
-      return timestamp*1000
+      return int(timestamp*1000)
     except:
       pass
   return 0
 
 def _convert(data,dataType,forAvro=False):
-  if not forAvro or data is not None: return data
+  if data is not None:
+    if dataType==str: return data.strip()
+    elif dataType==int: return int(data)
+    elif dataType==float: return float(data)
+    elif dataType==bool: return bool(data)
+    return data
+  if not forAvro: return None
+  # Add a default values for Avro restricted outputs.
   if dataType in [int,float]: return 0
   if dataType==bool: return False
+  return ""
 
 def _convertRow(flightState, queryTime, forAvro=False):
   '''
@@ -251,7 +280,23 @@ def _convertRow(flightState, queryTime, forAvro=False):
     row['query_time_avro']=_convertTimestampAvro(queryTime)
   return row
 
-def _scavengeRows(separateLines=False,bucket=None,path=None,projectId=None,topic=None,debug=None,forAvro=True,limit=None):
+def _scavengeRows(separateLines=False,
+                  bucket=None,path=None,
+                  projectId=None,topic=None,
+                  debug=None,forAvro=True,limit=None,
+                  credentials=None):
+  '''
+  :param separateLines: output each flight record as a separate item if True.
+  :param bucket: output to a bucket in GCS if not null.
+  :param path: the path of a directory within the bucket to write output to.
+  :param projectId: the project ID to use (required if not run within Google resources or if publishing to a Pub/Sub queue).
+  :param topic: the Pub/Sub topic to use if publishing to a queue.
+  :param debug: set to 10 to see debug statements.
+  :param forAvro: output records that adjere to an Avro schema, such as when publishing to a Pub/Sub queue that has an associated schema.
+  :param limit: a limit on the number of rows to write/publish.
+  :param credentials: expecting a dict with keys for type,project_id,private_key_id,private_key,client_email,client_id,auth_url,token_url,auth_provider_x509_cert_url,client_x509_cert_url;
+         this is optional; no need to pass in credentials when run from within Google's infrastructure.
+  '''
   queryTime = datetime.datetime.now().timestamp()
   if debug is not None:
     print(json.dumps({'log': 'Scavenging rows at {queryTime}.'.format(queryTime=str(queryTime))}))
@@ -273,14 +318,14 @@ def _scavengeRows(separateLines=False,bucket=None,path=None,projectId=None,topic
       if debug is not None: print(json.dumps({'log': 'Found {num:d} records to process.'.format(num=len(records))}))
       # Found records to process and/or publish.
       if bucket is not None:
-        storage = Storage(bucket, folder=path, separateLines=separateLines)
+        storage = Storage(bucket, folder=path, separateLines=separateLines,project=projectId,credentials=credentials)
         storage.process(records)
         if debug is not None: print(json.dumps({
           'log': 'Stored {num:d} records in folder {path} of bucket {bucket}'.format(
             num=len(records), path=path, bucket=bucket)}))
       
       if topic is not None and projectId is not None:
-        publisher=Publish(projectId,topic,separateLines=separateLines)
+        publisher=Publish(projectId,topic,separateLines=separateLines,credentials=credentials)
         publisher.process(records)
         if debug is not None: print(json.dumps({
           'log': 'Published {num:d} records to topic {topic}'.format(
@@ -288,7 +333,7 @@ def _scavengeRows(separateLines=False,bucket=None,path=None,projectId=None,topic
   else:
     if debug is not None: print(json.dumps({'log': 'No flight records were found.'}))
 
-def main(request):
+def main(request,credentials=None):
   """Responds to any HTTP request.
   Args:
       request (flask.Request): HTTP request object.
@@ -302,7 +347,7 @@ def main(request):
   debug = messageJSON.get('debug', 10)
   if debug == 0: debug = None
 
-  forAvro=messageJSON.get('forAvro',False)
+  forAvro=messageJSON.get('forAvro',True)
 
   projectId = messageJSON.get('projectId', '')
   if projectId == '': projectId = None
@@ -322,7 +367,11 @@ def main(request):
       print(json.dumps({'log':'Will publish to projectID:{project} topic:{topic}'.format(project=projectId,topic=topic)}))
     if bucket is not None:
       print(json.dumps({'log':'Will store in GCS at bucket:{bucket} path:{path}'.format(bucket=bucket,path=path)}))
-  _scavengeRows(separateLines=separateLines,bucket=bucket,path=path,projectId=projectId,topic=topic,debug=debug,forAvro=forAvro,limit=int(limit) if limit is not None else None)
+  _scavengeRows(separateLines=separateLines,
+                bucket=bucket,path=path,
+                projectId=projectId,topic=topic,
+                debug=debug,forAvro=forAvro,limit=int(limit) if limit is not None else None,
+                credentials=credentials)
 
 if __name__ == '__main__':
   # To call from the command line, provide two arguments: query, limit.
@@ -345,11 +394,21 @@ if __name__ == '__main__':
                       action="store_true")
   parser.add_argument('-limit',default=None)
   parser.add_argument('-log', help='Print out log statements.', default=None)
+  parser.add_argument('-credentials',help='Provide a file name of a local file which has credentials for Google Cloud.',default=None)
   
   # parse the arguments
   args = parser.parse_args()
   
+  credentials=None
+  if args.credentials is not None:
+    try:
+      with open(args.credentials) as credentialsContent:
+        credentials=json.loads(credentialsContent.readlines())
+    except Exception as ex:
+      print('Cannot load local credentials from path '+args.credentials+', exception: '+str(ex))
+      traceback.print_exc()
+      
   exampleRequest = ExampleRequest(args.projectId, args.query, limit=args.limit, topic=args.topic, debug=args.log,
                                   bucket=args.bucket,separateLines=args.separateLines,forAvro=args.avro)
   
-  main(exampleRequest)
+  main(exampleRequest,credentials=credentials)
