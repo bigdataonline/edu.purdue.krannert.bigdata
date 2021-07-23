@@ -20,7 +20,7 @@
 # For the Python API, see: https://opensky-network.org/apidoc/python.html
 import argparse
 import json
-import traceback
+import logging
 
 from google.cloud import storage
 import datetime
@@ -29,6 +29,12 @@ from google.cloud.pubsub_v1 import PublisherClient
 from google.oauth2 import service_account
 
 from opensky_api import OpenSkyApi
+
+logging.basicConfig(format='%(asctime)s.%(msecs)03dZ,%(pathname)s:%(lineno)d,%(levelname)s,%(module)s,%(funcName)s: %(message)s',
+                    datefmt="%Y-%m-%d %H:%M:%S")
+_logger = logging.getLogger(__name__)
+
+numTries=5 # Number of times to try to get data from OpenSky.
 
 class ExampleRequest(object):
   args = None
@@ -56,7 +62,7 @@ def _getMessageJSON(request):
   message = None
 
   if request.args is not None:
-    print(json.dumps({'log': 'request is ' + str(request) + ' with args ' + str(request.args)}))
+    _logger.debug('request is ' + str(request) + ' with args ' + str(request.args))
     if 'message' in request.args:
       message = request.args.get('message')
 
@@ -65,14 +71,14 @@ def _getMessageJSON(request):
       message = request.args
   if message is None and request_json is not None:
     # If message remains unset (None) then assuming that the request_json holds the contents of the message we are looking for.
-    print(json.dumps({'log': 'request_json is ' + str(request_json)}))
+    _logger.debug('request_json is ' + str(request_json))
     if 'message' in request_json:
       message = request_json['message']
     else:
       message = request_json
   
   if message is None:
-    print('message is empty. request=' + str(request) + ' request_json=' + str(request_json))
+    _logger.warning('message is empty. request=' + str(request) + ' request_json=' + str(request_json))
     message = '{}'
   
   if type(message) == str:
@@ -81,7 +87,7 @@ def _getMessageJSON(request):
       messageJSON = json.loads(message)
     except:
       try:
-        print(json.dumps({'log': 'ERROR Cannot parse provided message ' + str(message)}))
+        _logger.error('ERROR Cannot parse provided message ' + str(message),exc_info=True,stack_info=True)
       except:
         pass
       messageJSON = {}
@@ -123,20 +129,20 @@ class Storage(object):
     '''
     rows = map(lambda row: json.dumps(row), data)
     if self._separateLines:
-      print(json.dumps({'log': 'Storing as separate files within {path}.'.format(path=self._path)}))
+      _logger.debug(json.dumps({'log': 'Storing as separate files within {path}.'.format(path=self._path)}))
       for row in rows:
         fullpath=self._path + '/' + self._createFileName()
         try:
           self._client.blob(fullpath).upload_from_string(row)
         except Exception as ex:
-          print(json.dumps({'log': 'ERROR Error writing to {path}: {error}'.format(path=fullpath, error=str(ex))}))
+          _logger.error('Error writing to {path}'.format(path=fullpath),exc_info=True,stack_info=True)
     else:
       fullpath=self._path + '/' + self._createFileName()
-      print(json.dumps({'log': 'Storing in file {path}.'.format(path=self._path + '/' + self._createFileName())}))
+      _logger.debug('Storing in file {path}.'.format(path=self._path + '/' + self._createFileName()))
       try:
         self._client.blob(fullpath).upload_from_string('\n'.join(rows))
       except Exception as ex:
-        print(json.dumps({'log': 'ERROR Error writing to {path}: {error}'.format(path=fullpath, error=str(ex))}))
+        _logger.error('Error writing to {path}'.format(path=fullpath),exc_info=True,stack_info=True)
 
 class Publish(object):
   _increment = 0
@@ -170,23 +176,25 @@ class Publish(object):
       for row in rows:
         key=self._createKey()
         try:
-          print('Publishing: '+row)
+          # Very verbose logging: _logger.debug('Publishing: '+row)
           futures.append(self._publisher.publish(self._topicPath, data=row.encode('utf-8'), query=key))
-        except Exception as ex:
-          print(json.dumps({'log': 'ERROR Error publishing {key} to {topic}: {error}'.format(key=key,topic=self._topicPath, error=str(ex))}))
-          traceback.print_exc()
+        except:
+          _logger.error('Error publishing {key} to {topic}'.format(key=key,topic=self._topicPath),exc_info=True,stack_info=True)
+      numMessagesPublished=0
       for index,futurePublish in enumerate(futures):
         try:
-          print('Published message ID: '+str(futurePublish.result()))
-        except Exception as ex:
-          print('Error while publishing message #'+str(index)+': '+str(ex))
+          # Very verbose logging: _logger.debug('Published message ID: '+str(futurePublish.result()))
+          futurePublish.result()
+          numMessagesPublished+=1
+        except:
+          _logger.error('Error while publishing message #'+str(index),exc_info=True,stack_info=True)
+      _logger.debug('Published '+str(numMessagesPublished)+' messages.')
     else:
       key=self._createKey()
       try:
         self._publisher.publish(self._topicPath, data=('\n'.rows).encode('utf-8'), query=self._createKey())
-      except Exception as ex:
-        print(json.dumps({'log': 'ERROR Error publishing {key} to {topic}: {error}'.format(key=key, topic=self._topicPath, error=str(ex))}))
-        traceback.print_exc()
+      except:
+        _logger.error('Error publishing {key} to {topic}'.format(key=key, topic=self._topicPath),exc_info=True,stack_info=True)
 
 def _convertTimestamp(timestamp):
   '''
@@ -280,6 +288,17 @@ def _convertRow(flightState, queryTime, forAvro=False):
     row['query_time_avro']=_convertTimestampAvro(queryTime)
   return row
 
+def _getLatestFlightData():
+  api = OpenSkyApi()
+  for trial in range(numTries):
+    try:
+      _logger.debug('Requesting latest flights from OpenSky.')
+      flightStates = api.get_states()
+    except:
+      _logger.error('Failed in call to OpenSky.',exc_info=True,stack_info=True)
+    if flightStates is not None: return flightStates
+  return flightStates
+
 def _scavengeRows(separateLines=False,
                   bucket=None,path=None,
                   projectId=None,topic=None,
@@ -299,9 +318,8 @@ def _scavengeRows(separateLines=False,
   '''
   queryTime = datetime.datetime.now().timestamp()
   if debug is not None:
-    print(json.dumps({'log': 'Scavenging rows at {queryTime}.'.format(queryTime=str(queryTime))}))
-  api = OpenSkyApi()
-  flightStates = api.get_states()
+    _logger.debug(json.dumps({'log': 'Scavenging rows at {queryTime}.'.format(queryTime=str(queryTime))}))
+  flightStates=_getLatestFlightData()
   if flightStates is not None:
     records = []
     for flightDict in map(lambda flightState: _convertRow(flightState, queryTime, forAvro=forAvro), flightStates.states):
@@ -311,27 +329,27 @@ def _scavengeRows(separateLines=False,
           # If the record has at least one non-empty field, process it.
           records.append(flightDict if forAvro else trimmedRecord)
         except Exception as ex:
-          print(json.dumps({'log': 'ERROR cannot process record due to ' + str(ex)}))
+          _logger.error('ERROR cannot process record.',exc_info=True,stack_info=True)
       if limit is not None and len(records)>limit: break
     
     if len(records) > 0:
-      if debug is not None: print(json.dumps({'log': 'Found {num:d} records to process.'.format(num=len(records))}))
+      if debug is not None: _logger.debug(json.dumps({'log': 'Found {num:d} records to process.'.format(num=len(records))}))
       # Found records to process and/or publish.
       if bucket is not None:
         storage = Storage(bucket, folder=path, separateLines=separateLines,project=projectId,credentials=credentials)
         storage.process(records)
-        if debug is not None: print(json.dumps({
+        if debug is not None: _logger.debug(json.dumps({
           'log': 'Stored {num:d} records in folder {path} of bucket {bucket}'.format(
             num=len(records), path=path, bucket=bucket)}))
       
       if topic is not None and projectId is not None:
         publisher=Publish(projectId,topic,separateLines=separateLines,credentials=credentials)
         publisher.process(records)
-        if debug is not None: print(json.dumps({
+        if debug is not None: _logger.debug(json.dumps({
           'log': 'Published {num:d} records to topic {topic}'.format(
             num=len(records), topic=topic)}))
   else:
-    if debug is not None: print(json.dumps({'log': 'No flight records were found.'}))
+    if debug is not None: _logger.debug(json.dumps({'log': 'No flight records were found.'}))
 
 def main(request,credentials=None):
   """Responds to any HTTP request.
@@ -345,7 +363,10 @@ def main(request,credentials=None):
   messageJSON = _getMessageJSON(request)
   
   debug = messageJSON.get('debug', 10)
-  if debug == 0: debug = None
+  if debug == 0:
+    debug = None
+  else:
+    _logger.setLevel(debug)
 
   forAvro=messageJSON.get('forAvro',True)
 
@@ -361,12 +382,11 @@ def main(request,credentials=None):
   separateLines = 'separateLines' in messageJSON
   limit = messageJSON.get('limit',None)
   
-  if debug is not None:
-    print(json.dumps({'log': 'Parsed message is ' + json.dumps(messageJSON)}))
-    if topic is not None:
-      print(json.dumps({'log':'Will publish to projectID:{project} topic:{topic}'.format(project=projectId,topic=topic)}))
-    if bucket is not None:
-      print(json.dumps({'log':'Will store in GCS at bucket:{bucket} path:{path}'.format(bucket=bucket,path=path)}))
+  _logger.info(json.dumps({'log': 'Parsed message is ' + json.dumps(messageJSON)}))
+  if topic is not None:
+    _logger.info(json.dumps({'log':'Will publish to projectID:{project} topic:{topic}'.format(project=projectId,topic=topic)}))
+  if bucket is not None:
+    _logger.info(json.dumps({'log':'Will store in GCS at bucket:{bucket} path:{path}'.format(bucket=bucket,path=path)}))
   _scavengeRows(separateLines=separateLines,
                 bucket=bucket,path=path,
                 projectId=projectId,topic=topic,
@@ -404,9 +424,8 @@ if __name__ == '__main__':
     try:
       with open(args.credentials) as credentialsContent:
         credentials=json.loads(credentialsContent.readlines())
-    except Exception as ex:
-      print('Cannot load local credentials from path '+args.credentials+', exception: '+str(ex))
-      traceback.print_exc()
+    except:
+      _logger.error('Cannot load local credentials from path '+args.credentials,exc_info=True,stack_info=True)
       
   exampleRequest = ExampleRequest(args.projectId, args.query, limit=args.limit, topic=args.topic, debug=args.log,
                                   bucket=args.bucket,separateLines=args.separateLines,forAvro=args.avro)
