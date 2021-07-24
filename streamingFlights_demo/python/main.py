@@ -295,7 +295,7 @@ def _getLatestFlightData():
       _logger.debug('Requesting latest flights from OpenSky.')
       flightStates = api.get_states()
     except:
-      _logger.error('Failed in call to OpenSky.',exc_info=True,stack_info=True)
+      _logger.error('Failed in call to OpenSky.',exc_info=True)
     if flightStates is not None: return flightStates
   return flightStates
 
@@ -320,8 +320,10 @@ def _scavengeRows(separateLines=False,
   if debug is not None:
     _logger.debug(json.dumps({'log': 'Scavenging rows at {queryTime}.'.format(queryTime=str(queryTime))}))
   flightStates=_getLatestFlightData()
+  numProcessed=0
   if flightStates is not None:
     records = []
+    _logger.debug('Writing output '+('for use with Avro schema' if forAvro else 'for use with autodetected schema'))
     for flightDict in map(lambda flightState: _convertRow(flightState, queryTime, forAvro=forAvro), flightStates.states):
       trimmedRecord = dict(filter(lambda item: item[1] is not None, flightDict.items()))
       if len(trimmedRecord) > 0:
@@ -338,6 +340,7 @@ def _scavengeRows(separateLines=False,
       if bucket is not None:
         storage = Storage(bucket, folder=path, separateLines=separateLines,project=projectId,credentials=credentials)
         storage.process(records)
+        numProcessed+=len(records)
         if debug is not None: _logger.debug(json.dumps({
           'log': 'Stored {num:d} records in folder {path} of bucket {bucket}'.format(
             num=len(records), path=path, bucket=bucket)}))
@@ -345,11 +348,13 @@ def _scavengeRows(separateLines=False,
       if topic is not None and projectId is not None:
         publisher=Publish(projectId,topic,separateLines=separateLines,credentials=credentials)
         publisher.process(records)
+        numProcessed+=len(records)
         if debug is not None: _logger.debug(json.dumps({
           'log': 'Published {num:d} records to topic {topic}'.format(
             num=len(records), topic=topic)}))
   else:
     if debug is not None: _logger.debug(json.dumps({'log': 'No flight records were found.'}))
+  return numProcessed
 
 def main(request,credentials=None):
   """Responds to any HTTP request.
@@ -368,7 +373,7 @@ def main(request,credentials=None):
   else:
     _logger.setLevel(debug)
 
-  forAvro=messageJSON.get('forAvro',True)
+  forAvro=messageJSON.get('forAvro',False)
 
   projectId = messageJSON.get('projectId', '')
   if projectId == '': projectId = None
@@ -383,15 +388,17 @@ def main(request,credentials=None):
   limit = messageJSON.get('limit',None)
   
   _logger.info(json.dumps({'log': 'Parsed message is ' + json.dumps(messageJSON)}))
+  if forAvro: _logger.info('Will output for use with Avro schema.')
   if topic is not None:
     _logger.info(json.dumps({'log':'Will publish to projectID:{project} topic:{topic}'.format(project=projectId,topic=topic)}))
   if bucket is not None:
     _logger.info(json.dumps({'log':'Will store in GCS at bucket:{bucket} path:{path}'.format(bucket=bucket,path=path)}))
-  _scavengeRows(separateLines=separateLines,
+  numProcessed=_scavengeRows(separateLines=separateLines,
                 bucket=bucket,path=path,
                 projectId=projectId,topic=topic,
                 debug=debug,forAvro=forAvro,limit=int(limit) if limit is not None else None,
                 credentials=credentials)
+  return json.dumps(messageJSON)+' handled '+str(numProcessed)+' items.'
 
 if __name__ == '__main__':
   # To call from the command line, provide two arguments: query, limit.
