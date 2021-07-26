@@ -1,0 +1,30 @@
+{
+  "type": "record",
+  "namespace": "flights",
+  "name": "streamRecord",
+  "fields": [
+    {"name": "altitude","type": "double"},
+    {"name": "baro_altitude","type": "double"},
+    {"name": "callsign","type": "string"},
+    {"name": "contact","doc":"seconds","type": "long"},
+    {"name": "contact_avro","doc":"millis","type": "long","logicalType":"timestamp-millis"},
+    {"name": "contact_bq","doc": "NOTE formatted date-time string","type": "string"},
+    {"name": "heading","type": "double"},
+    {"name": "icao24","type": "string"},
+    {"name": "latitude","type": "double"},
+    {"name": "longitude","type": "double"},
+    {"name": "on_ground","type": "boolean"},
+    {"name": "origin","type": "string"},
+    {"name": "position_source","type": "long"},
+    {"name": "query_time_avro","doc": "millis","type": "long","logicalType":"timestamp-millis"},
+    {"name": "query_time_bq","doc": "NOTE formatted date-time string","type": "string"},
+    {"name": "sensors","type":"string"},
+    {"name": "spi","type": "boolean"},
+    {"name": "squawk","type": "long"},
+    {"name": "time","doc":"seconds","type": "long"},
+    {"name": "time_avro","doc":"millis","type": "long","logicalType":"timestamp-millis"},
+    {"name": "time_bq","doc": "NOTE formatted date-time string","type": "string"},
+    {"name": "velocity","type": "double"},
+    {"name": "vertical_rate","type": "double"}
+  ]
+}

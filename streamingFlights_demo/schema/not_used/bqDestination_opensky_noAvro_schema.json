@@ -1,0 +1,21 @@
+[
+    {"name":"squawk","type":"INTEGER","mode":"NULLABLE"},
+    {"name":"spi","type":"BOOLEAN","mode":"NULLABLE"},
+    {"name":"baro_altitude","type":"FLOAT","mode":"NULLABLE"},
+    {"name":"vertical_rate","type":"FLOAT","mode":"NULLABLE"},
+    {"name":"icao24","type":"STRING","mode":"NULLABLE"},
+    {"name":"on_ground","type":"BOOLEAN","mode":"NULLABLE"},
+    {"name":"heading","type":"FLOAT","mode":"NULLABLE"},
+    {"name":"position_source","type":"INTEGER","mode":"NULLABLE"},
+    {"name":"velocity","type":"FLOAT","mode":"NULLABLE"},
+    {"name":"longitude","type":"FLOAT","mode":"NULLABLE"},
+    {"name":"altitude","type":"FLOAT","mode":"NULLABLE"},
+    {"name":"latitude","type":"FLOAT","mode":"NULLABLE"},
+    {"name":"callsign","type":"STRING","mode":"NULLABLE"},
+    {"name":"time","type":"INTEGER","mode":"NULLABLE"},
+    {"name":"contact","type":"INTEGER","mode":"NULLABLE"},
+    {"name":"origin","type":"STRING","mode":"NULLABLE"},
+    {"name":"time_bq","type":"DATETIME"},
+    {"name":"contact_bq","type":"DATETIME"},
+    {"name":"query_time_bq","type":"DATETIME"}
+]
