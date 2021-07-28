@@ -47,3 +47,20 @@ twitter in order to access the twitter API.
 The schema folder has a schema used when adding a Pub/Sub topic as a data
 source to BigQuery (when using the DataFlow interface). This schema defines
 how DataFlow is to parse the messages in the Pub/Sub topic.
+
+Note that there are other fields within the tweets and twitter users that are
+not extracted by the code which you may find interesting, such as the actual
+text of the tweets. The tweet text is in two locations, an element named 
+"text" and a field named "full_text" within the "extended_tweet" element. 
+The entire tweet is extracted by the code and can be found in the "text" field
+(sorry for the confusion since twitter has a 'text' field in its tweets.)
+
+You can easily extract the text fields from the tweets in BigQuery as:
+
+> SELECT 
+>    *,
+>    JSON_EXTRACT(text,'$.text') text_text, 
+>    JSON_EXTRACT(text,'$.extended_tweet.full_text') text_extended
+>FROM twitter.tweets;
+
+_(where twitter is your dataset name and tweets is your table name.)_
