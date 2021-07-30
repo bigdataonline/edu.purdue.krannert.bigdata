@@ -1,0 +1,152 @@
+[
+    {
+    "mode": "NULLABLE",
+    "name": "geo",
+    "type": "STRING"
+    },
+    {
+    "mode": "NULLABLE",
+    "name": "coordinates",
+    "type": "STRING"
+    },
+    {
+    "mode": "NULLABLE",
+    "name": "place",
+    "type": "STRING"
+    },
+    {
+    "mode": "NULLABLE",
+    "name": "symbols",
+    "type": "STRING"
+    },
+    {
+    "mode": "NULLABLE",
+    "name": "hashtags",
+    "type": "STRING"
+    },
+  {
+    "mode": "NULLABLE",
+    "name": "query",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "lang",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "user_mentions",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "retweet_count",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "favorite_count",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "reply_count",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "retweeted",
+    "type": "BOOLEAN"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "favorited",
+    "type": "BOOLEAN"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "quote_count",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "is_quote_status",
+    "type": "BOOLEAN"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "quoted_status_id_str",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "user",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "text",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "extended_tweet",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "in_reply_to_screen_name",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "in_reply_to_user_id_str",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "quoted_status_id",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "in_reply_to_user_id",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "timestamp_ms",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "id_str",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "id",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "in_reply_to_status_id",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "in_reply_to_status_id_str",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "created_at",
+    "type": "STRING"
+  },
+    {
+	"mode":"NULLABLE",
+	"name":"raw",
+	"type":"STRING"
+    }
+]

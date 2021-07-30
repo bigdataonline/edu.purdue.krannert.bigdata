@@ -9,7 +9,8 @@
 #     "userBucket":"mgmt59000_twitter_users","debug":10,"limit":10}
 #     -- This will both publish in a pub/sub and store in GCS.
 #     -- The query can take an array of words or phrases.
-#
+#     {"query":["olympics","tennis"],"projectId":"helical-ranger-294523","bucket":"mgmt59000_twitter_tweets","userBucket":"mgmt59000_twitter_users","path":"delimited","debug":10,"limit":100,"delim":"|"}
+#     {"query":["olympics","upset"],"projectId":"helical-ranger-294523","bucket":"mgmt59000_twitter_tweets","userBucket":"mgmt59000_twitter_users","path":"arrays","debug":10,"limit":100}
 # Command Line:
 #   Give a query and optionally supply a limit.
 #   Example calls:
