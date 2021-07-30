@@ -96,7 +96,7 @@ class MyListener(StreamListener):
   
   _tweetFields = ["created_at", "id", "id_str", "text", "in_reply_to_status_id", "in_reply_to_status_id_str",
                   "in_reply_to_user_id", "in_reply_to_user_id_str", "in_reply_to_screen_name", "geo", "coordinates",
-                  "place", "contributors", "quoted_status_id", "quoted_status_id_str", "is_quote_status", "quote_count",
+                  "contributors", "quoted_status_id", "quoted_status_id_str", "is_quote_status", "quote_count",
                   "reply_count", "retweet_count", "favorite_count", "favorited", "retweeted", "lang", "timestamp_ms"]
   _tweetReferences = {"user": "id",
                       "retweeted_status": "id",
@@ -104,11 +104,23 @@ class MyListener(StreamListener):
                       "user_mentions": "id",
                       "symbols": "text",
                       "extended_tweet": "full_text"}
+  _objectFields={"place":["name","full_name","country_code","country","place_type"]}
   _userFields = ["id", "id_str", "name", "screen_name", "location", "description", "followers_count", "friends_count",
                  "listed_count", "favourites_count", "statuses_count", "created_at", "following", "follow_request_sent",
                  "notifications"]
   
   _multivalueTweetFields=["coordinates", "hashtags", "user_mentions", "symbols", "extended_tweet"]
+  
+  @classmethod
+  def extractFromObject(cls, field, objectValue):
+    extractions=[]
+    if objectValue is not None:
+        extractions.extend(filter(lambda item: item is not None,
+          map(lambda objectField:
+            (field+'_'+objectField,objectValue[objectField]) if objectField in objectValue else None,
+            cls._objectFields.get(field,[]))
+        ))
+    return extractions
   
   @classmethod
   def extractReference(cls, outerField, element):
@@ -153,6 +165,11 @@ class MyListener(StreamListener):
           referencedEntities = cls.extractReference(field, value)
           if len(referencedEntities) > 0:
             tweetRow[field] = referencedEntities
+        elif field in cls._objectFields.keys():
+          # Flatten the field that has an object value.
+          itemsFromObject=cls.extractFromObject(field,value)
+          if len(itemsFromObject)>0:
+            tweetRow.update(itemsFromObject)
         elif field == 'entities':
           # Unnest the entities object.
           for entityType, entity in value.items():

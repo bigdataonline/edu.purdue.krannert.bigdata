@@ -1,29 +1,49 @@
 [
-    {
+  {
     "mode": "NULLABLE",
     "name": "geo",
     "type": "STRING"
-    },
-    {
+  },
+  {
     "mode": "NULLABLE",
     "name": "coordinates",
     "type": "STRING"
-    },
-    {
+  },
+  {
     "mode": "NULLABLE",
-    "name": "place",
+    "name": "place_name",
     "type": "STRING"
-    },
-    {
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "place_full_name",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "place_country_code",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "place_country",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "place_place_type",
+    "type": "STRING"
+  },
+  {
     "mode": "NULLABLE",
     "name": "symbols",
     "type": "STRING"
-    },
-    {
+  },
+  {
     "mode": "NULLABLE",
     "name": "hashtags",
     "type": "STRING"
-    },
+  },
   {
     "mode": "NULLABLE",
     "name": "query",
@@ -58,6 +78,11 @@
     "mode": "NULLABLE",
     "name": "retweeted",
     "type": "BOOLEAN"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "retweeted_status",
+    "type": "INTEGER"
   },
   {
     "mode": "NULLABLE",
@@ -144,9 +169,9 @@
     "name": "created_at",
     "type": "STRING"
   },
-    {
-	"mode":"NULLABLE",
-	"name":"raw",
-	"type":"STRING"
-    }
+  {
+    "mode": "NULLABLE",
+    "name": "raw",
+    "type": "STRING"
+  }
 ]
