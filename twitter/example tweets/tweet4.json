@@ -1,0 +1,37 @@
+{
+  "created_at": "Fri Jul 30 14:30:14 +0000 2021",
+  "id": 1421115925026181123,
+  "id_str": "1421115925026181123",
+  "text": "Just posted a photo @ Goa https://t.co/BKqoE0JnS9",
+  "user": 1278646653323378689,
+  "geo": {
+    "type": "Point",
+    "coordinates": [
+      23.72629,
+      84.55317
+    ]
+  },
+  "coordinates": {
+    "type": "Point",
+    "coordinates": [
+      84.55317,
+      23.72629
+    ]
+  },
+  "place_name": "Jharkhand",
+  "place_full_name": "Jharkhand, India",
+  "place_country_code": "IN",
+  "place_country": "India",
+  "place_place_type": "admin",
+  "is_quote_status": false,
+  "quote_count": 0,
+  "reply_count": 0,
+  "retweet_count": 0,
+  "favorite_count": 0,
+  "favorited": false,
+  "retweeted": false,
+  "lang": "en",
+  "timestamp_ms": "1627655414240",
+  "query": "tennis",
+  "raw": "{\"created_at\": \"Fri Jul 30 14:30:14 +0000 2021\", \"id\": 1421115925026181123, \"id_str\": \"1421115925026181123\", \"text\": \"Just posted a photo @ Goa https://t.co/BKqoE0JnS9\", \"source\": \"<a href=\\\"http://instagram.com\\\" rel=\\\"nofollow\\\">Instagram</a>\", \"truncated\": false, \"in_reply_to_status_id\": null, \"in_reply_to_status_id_str\": null, \"in_reply_to_user_id\": null, \"in_reply_to_user_id_str\": null, \"in_reply_to_screen_name\": null, \"user\": {\"id\": 1278646653323378689, \"id_str\": \"1278646653323378689\", \"name\": \"The Realistic Words\", \"screen_name\": \"words_realistic\", \"location\": \"Bengaluru, India\", \"url\": \"https://instagram.com/realistic__words?igshid=c4n3fpypvhfp\", \"description\": \"#writer #shayar \\nSelf written qoutes & shayari\\nMotivational |Inspirational |Love|Friendship\\n& much more realistic\\nFollow to feel the magic of words.\", \"translator_type\": \"none\", \"protected\": false, \"verified\": false, \"followers_count\": 17, \"friends_count\": 12, \"listed_count\": 1, \"favourites_count\": 80, \"statuses_count\": 118, \"created_at\": \"Thu Jul 02 11:08:29 +0000 2020\", \"utc_offset\": null, \"time_zone\": null, \"geo_enabled\": true, \"lang\": null, \"contributors_enabled\": false, \"is_translator\": false, \"profile_background_color\": \"F5F8FA\", \"profile_background_image_url\": \"\", \"profile_background_image_url_https\": \"\", \"profile_background_tile\": false, \"profile_link_color\": \"1DA1F2\", \"profile_sidebar_border_color\": \"C0DEED\", \"profile_sidebar_fill_color\": \"DDEEF6\", \"profile_text_color\": \"333333\", \"profile_use_background_image\": true, \"profile_image_url\": \"http://pbs.twimg.com/profile_images/1278646971645882370/u_kx5PeC_normal.jpg\", \"profile_image_url_https\": \"https://pbs.twimg.com/profile_images/1278646971645882370/u_kx5PeC_normal.jpg\", \"profile_banner_url\": \"https://pbs.twimg.com/profile_banners/1278646653323378689/1593688242\", \"default_profile\": true, \"default_profile_image\": false, \"following\": null, \"follow_request_sent\": null, \"notifications\": null, \"withheld_in_countries\": []}, \"geo\": {\"type\": \"Point\", \"coordinates\": [23.72629, 84.55317]}, \"coordinates\": {\"type\": \"Point\", \"coordinates\": [84.55317, 23.72629]}, \"place\": {\"id\": \"2b89f7745f95f542\", \"url\": \"https://api.twitter.com/1.1/geo/id/2b89f7745f95f542.json\", \"place_type\": \"admin\", \"name\": \"Jharkhand\", \"full_name\": \"Jharkhand, India\", \"country_code\": \"IN\", \"country\": \"India\", \"bounding_box\": {\"type\": \"Polygon\", \"coordinates\": [[[83.331271, 21.970758], [83.331271, 25.348818], [87.978576, 25.348818], [87.978576, 21.970758]]]}, \"attributes\": {}}, \"contributors\": null, \"is_quote_status\": false, \"quote_count\": 0, \"reply_count\": 0, \"retweet_count\": 0, \"favorite_count\": 0, \"entities\": {\"hashtags\": [], \"urls\": [{\"url\": \"https://t.co/BKqoE0JnS9\", \"expanded_url\": \"https://www.instagram.com/p/CR9Gj2flwtX/?utm_medium=twitter\", \"display_url\": \"instagram.com/p/CR9Gj2flwtX/\\u2026\", \"indices\": [26, 49]}], \"user_mentions\": [], \"symbols\": []}, \"favorited\": false, \"retweeted\": false, \"possibly_sensitive\": false, \"filter_level\": \"low\", \"lang\": \"en\", \"timestamp_ms\": \"1627655414240\"}"
+}
