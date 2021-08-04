@@ -94,25 +94,53 @@ def _getMessageJSON(request):
 class MyListener(StreamListener):
   """Custom StreamListener for streaming data."""
   
+  # _tweetFields is a list of fields to pull out of a tweet.
   _tweetFields = ["created_at", "id", "id_str", "text", "in_reply_to_status_id", "in_reply_to_status_id_str",
-                  "in_reply_to_user_id", "in_reply_to_user_id_str", "in_reply_to_screen_name", "geo", "coordinates",
+                  "in_reply_to_user_id", "in_reply_to_user_id_str", "in_reply_to_screen_name",
                   "contributors", "quoted_status_id", "quoted_status_id_str", "is_quote_status", "quote_count",
                   "reply_count", "retweet_count", "favorite_count", "favorited", "retweeted", "lang", "timestamp_ms"]
+  # Reference fields reference other entities, such as the user who created the tweet or the original tweet for a retweet.
+  # Identify which of the referenced entity's fields to use as the cross reference ID or to extract from the entity.
   _tweetReferences = {"user": "id",
                       "retweeted_status": "id",
                       "hashtags": "text",
                       "user_mentions": "id",
                       "symbols": "text",
                       "extended_tweet": "full_text"}
+  # Object fields have object structures as their values. We can pull out fields from the object value using the _objectFields property.
   _objectFields={"place":["name","full_name","country_code","country","place_type"]}
+  # Exact location elements are structured as:
+  #   "geo": {
+  #     "type": "Point",
+  #     "coordinates": [
+  #       23.72629,
+  #       84.55317
+  #     ]
+  #   },
+  #   "coordinates": {
+  #     "type": "Point",
+  #     "coordinates": [
+  #       84.55317,
+  #       23.72629
+  #     ]
+  #   }
+  # "geo" is an older version and is just latitude,longitude instead of longitude,latitude.
+  _coordinateFields={'coordinates':['longitude','latitude'],'geo':['latitude','longitude']}
+  # _userFields is the list of fields to pull out of a user record.
   _userFields = ["id", "id_str", "name", "screen_name", "location", "description", "followers_count", "friends_count",
                  "listed_count", "favourites_count", "statuses_count", "created_at", "following", "follow_request_sent",
                  "notifications"]
-  
-  _multivalueTweetFields=["coordinates", "hashtags", "user_mentions", "symbols", "extended_tweet"]
+  # _multivalueTweetFields are fields that potentially have more than one value.
+  _multivalueTweetFields=["hashtags", "user_mentions", "symbols", "extended_tweet"]
   
   @classmethod
   def extractFromObject(cls, field, objectValue):
+    '''
+    Extract the list of inner fields in cls._objectFields for the given field.
+    :param field: the field that has an object value.
+    :param objectValue: the actual value found in a tweet.
+    :return: the list of values for the inner fields.
+    '''
     extractions=[]
     if objectValue is not None:
         extractions.extend(filter(lambda item: item is not None,
@@ -121,6 +149,11 @@ class MyListener(StreamListener):
             cls._objectFields.get(field,[]))
         ))
     return extractions
+  
+  @classmethod
+  def extractExactLocation(cls, field, coordinates):
+    if coordinates is not None and field in cls._coordinateFields and len(cls._coordinateFields[field])==len(coordinates):
+      return zip(cls._coordinateFields[field],coordinates)
   
   @classmethod
   def extractReference(cls, outerField, element):
@@ -158,25 +191,26 @@ class MyListener(StreamListener):
         elif field in ['user', 'retweeted_status']:
           # These nested elements only contain one object.
           referencedEntities = cls.extractReference(field, value)
-          if len(referencedEntities) > 0:
-            tweetRow[field] = referencedEntities[0]
+          if len(referencedEntities) > 0: tweetRow[field] = referencedEntities[0]
         elif field in cls._tweetReferences:
           # Capture potentially multiple references.
           referencedEntities = cls.extractReference(field, value)
-          if len(referencedEntities) > 0:
-            tweetRow[field] = referencedEntities
+          if len(referencedEntities) > 0: tweetRow[field] = referencedEntities
         elif field in cls._objectFields.keys():
           # Flatten the field that has an object value.
           itemsFromObject=cls.extractFromObject(field,value)
-          if len(itemsFromObject)>0:
-            tweetRow.update(itemsFromObject)
+          if len(itemsFromObject)>0: tweetRow.update(itemsFromObject)
+        elif field in cls._coordinateFields.keys():
+          # Pull out the components of the coordinates and store as separate fields.
+          if 'coordinates' in value:
+            coordinates=cls.extractExactLocation(field, value['coordinates']) # All coordinate fields have a property named "coordinates".
+            if len(coordinates)>0: tweetRow.update(coordinates)
         elif field == 'entities':
           # Unnest the entities object.
           for entityType, entity in value.items():
             # Capture each referenced entity.
             referencedEntities = cls.extractReference(entityType, entity)
-            if len(referencedEntities) > 0:
-              tweetRow[entityType] = referencedEntities
+            if len(referencedEntities) > 0: tweetRow[entityType] = referencedEntities
         
         if field == 'retweeted_status':
           try:

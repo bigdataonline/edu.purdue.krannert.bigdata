@@ -1,13 +1,13 @@
 [
   {
     "mode": "NULLABLE",
-    "name": "geo",
-    "type": "STRING"
+    "name": "longitude",
+    "type": "FLOAT"
   },
   {
     "mode": "NULLABLE",
-    "name": "coordinates",
-    "type": "STRING"
+    "name": "latitude",
+    "type": "FLOAT"
   },
   {
     "mode": "NULLABLE",
