@@ -463,7 +463,7 @@ def main(request):
     _logger.debug('Querying for {term}'.format(term=term))
     twitter_stream = Stream(twitterAuth, MyListener(projectId, term, limit, topic=topic, userTopic=userTopic, bucket=bucket,
                                              userBucket=userBucket,pathInBucket=pathInBuckets,delim=delim,debug=debug))
-    twitter_stream.filter(track=term)
+    twitter_stream.filter(track=[term])
   return json.dumps(messageJSON)+' completed.'
 
 if __name__ == '__main__':
