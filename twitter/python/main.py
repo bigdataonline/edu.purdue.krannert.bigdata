@@ -459,7 +459,7 @@ def main(request):
   _logger.debug('Checking rate limit. Will potentially wait until rate limit replenishes...')
   tweepy.API(twitterAuth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
   
-  _logger.debug('Querying for {term}'.format(term=str(query)))
+  _logger.debug('Querying for {term}'.format(term=','.join(query)))
   twitter_stream = Stream(twitterAuth, MyListener(projectId, query, limit, topic=topic, userTopic=userTopic, bucket=bucket,
                                            userBucket=userBucket,pathInBucket=pathInBuckets,delim=delim,debug=debug))
   twitter_stream.filter(track=query)

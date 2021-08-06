@@ -151,11 +151,6 @@ class MyListener(StreamListener):
     return extractions
   
   @classmethod
-  def extractExactLocation(cls, field, coordinates):
-    if coordinates is not None and field in cls._coordinateFields and len(cls._coordinateFields[field])==len(coordinates):
-      return zip(cls._coordinateFields[field],coordinates)
-  
-  @classmethod
   def extractReference(cls, outerField, element):
     '''
 
@@ -200,11 +195,6 @@ class MyListener(StreamListener):
           # Flatten the field that has an object value.
           itemsFromObject=cls.extractFromObject(field,value)
           if len(itemsFromObject)>0: tweetRow.update(itemsFromObject)
-        elif field in cls._coordinateFields.keys():
-          # Pull out the components of the coordinates and store as separate fields.
-          if 'coordinates' in value:
-            coordinates=cls.extractExactLocation(field, value['coordinates']) # All coordinate fields have a property named "coordinates".
-            if len(coordinates)>0: tweetRow.update(coordinates)
         elif field == 'entities':
           # Unnest the entities object.
           for entityType, entity in value.items():
@@ -456,14 +446,13 @@ def main(request):
   twitterAuth = OAuthHandler(keys['consumer_key'], keys['consumer_secret'])
   twitterAuth.set_access_token(keys['access_token'], keys['access_secret'])
   
-  for term in query:
-    _logger.debug('Checking rate limit. Will potentially wait until rate limit replenishes...')
-    tweepy.API(twitterAuth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
-    
-    _logger.debug('Querying for {term}'.format(term=term))
-    twitter_stream = Stream(twitterAuth, MyListener(projectId, term, limit, topic=topic, userTopic=userTopic, bucket=bucket,
-                                             userBucket=userBucket,pathInBucket=pathInBuckets,delim=delim,debug=debug))
-    twitter_stream.filter(track=[term])
+  _logger.debug('Checking rate limit. Will potentially wait until rate limit replenishes...')
+  tweepy.API(twitterAuth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+  
+  _logger.debug('Querying for {term}'.format(term=','.join(query)))
+  twitter_stream = Stream(twitterAuth, MyListener(projectId, query, limit, topic=topic, userTopic=userTopic, bucket=bucket,
+                                           userBucket=userBucket,pathInBucket=pathInBuckets,delim=delim,debug=debug))
+  twitter_stream.filter(track=query)
   return json.dumps(messageJSON)+' completed.'
 
 if __name__ == '__main__':
