@@ -1,0 +1,167 @@
+[
+  {
+    "mode": "NULLABLE",
+    "name": "place_name",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "place_full_name",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "place_country_code",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "place_country",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "place_place_type",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "symbols",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "hashtags",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "query",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "lang",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "user_mentions",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "retweet_count",
+    "type": "INT64"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "favorite_count",
+    "type": "INT64"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "reply_count",
+    "type": "INT64"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "retweeted",
+    "type": "BOOL"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "retweeted_status",
+    "type": "INT64"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "favorited",
+    "type": "BOOL"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "quote_count",
+    "type": "INT64"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "is_quote_status",
+    "type": "BOOL"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "quoted_status_id_str",
+    "type": "INT64"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "user",
+    "type": "INT64"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "text",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "extended_tweet",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "in_reply_to_screen_name",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "in_reply_to_user_id_str",
+    "type": "INT64"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "quoted_status_id",
+    "type": "INT64"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "in_reply_to_user_id",
+    "type": "INT64"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "timestamp_ms",
+    "type": "INT64"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "id_str",
+    "type": "INT64"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "id",
+    "type": "INT64"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "in_reply_to_status_id",
+    "type": "INT64"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "in_reply_to_status_id_str",
+    "type": "INT64"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "created_at",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "raw",
+    "type": "STRING"
+  }
+]
