@@ -153,7 +153,7 @@ class MyListener(StreamListener):
   @classmethod
   def extractExactLocation(cls, field, coordinates):
     if coordinates is not None and field in cls._coordinateFields and len(cls._coordinateFields[field])==len(coordinates):
-      return zip(cls._coordinateFields[field],coordinates)
+      return list(zip(cls._coordinateFields[field],coordinates))
   
   @classmethod
   def extractReference(cls, outerField, element):
@@ -345,7 +345,7 @@ class MyListener(StreamListener):
     return ('' if self._path is None else self._path+'/')+re.sub(r'[^A-Za-z0-9_.-]', '_', key)
   
   def on_data(self, data):
-    print(json.dumps({'log': 'Found tweet...'}))
+    _logger.debug('Found tweet for '+str(self.query))
     try:
       tweets = json.loads(data)
       tweetRecords = self.extractTweet(tweets, self.query, delim=self._delim)
@@ -456,14 +456,13 @@ def main(request):
   twitterAuth = OAuthHandler(keys['consumer_key'], keys['consumer_secret'])
   twitterAuth.set_access_token(keys['access_token'], keys['access_secret'])
   
-  for term in query:
-    _logger.debug('Checking rate limit. Will potentially wait until rate limit replenishes...')
-    tweepy.API(twitterAuth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
-    
-    _logger.debug('Querying for {term}'.format(term=term))
-    twitter_stream = Stream(twitterAuth, MyListener(projectId, term, limit, topic=topic, userTopic=userTopic, bucket=bucket,
-                                             userBucket=userBucket,pathInBucket=pathInBuckets,delim=delim,debug=debug))
-    twitter_stream.filter(track=[term])
+  _logger.debug('Checking rate limit. Will potentially wait until rate limit replenishes...')
+  tweepy.API(twitterAuth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+  
+  _logger.debug('Querying for {term}'.format(term=str(query)))
+  twitter_stream = Stream(twitterAuth, MyListener(projectId, query, limit, topic=topic, userTopic=userTopic, bucket=bucket,
+                                           userBucket=userBucket,pathInBucket=pathInBuckets,delim=delim,debug=debug))
+  twitter_stream.filter(track=query)
   return json.dumps(messageJSON)+' completed.'
 
 if __name__ == '__main__':
