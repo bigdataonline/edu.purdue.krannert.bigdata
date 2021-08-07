@@ -92,7 +92,7 @@
   {
     "mode": "NULLABLE",
     "name": "quoted_status_id_str",
-    "type": "INT64"
+    "type": "STRING"
   },
   {
     "mode": "NULLABLE",
@@ -117,7 +117,7 @@
   {
     "mode": "NULLABLE",
     "name": "in_reply_to_user_id_str",
-    "type": "INT64"
+    "type": "STRING"
   },
   {
     "mode": "NULLABLE",
@@ -137,7 +137,7 @@
   {
     "mode": "NULLABLE",
     "name": "id_str",
-    "type": "INT64"
+    "type": "STRING"
   },
   {
     "mode": "NULLABLE",
@@ -152,7 +152,7 @@
   {
     "mode": "NULLABLE",
     "name": "in_reply_to_status_id_str",
-    "type": "INT64"
+    "type": "STRING"
   },
   {
     "mode": "NULLABLE",
