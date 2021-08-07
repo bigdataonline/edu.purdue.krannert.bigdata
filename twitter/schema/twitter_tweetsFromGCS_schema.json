@@ -1,46 +1,26 @@
 [
   {
-    "mode": "NULLABLE",
-    "name": "longitude",
-    "type": "FLOAT"
+    "mode": "REPEATED",
+    "name": "geo",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "REPEATED",
+    "name": "coordinates",
+    "type": "INTEGER"
   },
   {
     "mode": "NULLABLE",
-    "name": "latitude",
-    "type": "FLOAT"
-  },
-  {
-    "mode": "NULLABLE",
-    "name": "place_name",
+    "name": "place",
     "type": "STRING"
   },
   {
-    "mode": "NULLABLE",
-    "name": "place_full_name",
-    "type": "STRING"
-  },
-  {
-    "mode": "NULLABLE",
-    "name": "place_country_code",
-    "type": "STRING"
-  },
-  {
-    "mode": "NULLABLE",
-    "name": "place_country",
-    "type": "STRING"
-  },
-  {
-    "mode": "NULLABLE",
-    "name": "place_place_type",
-    "type": "STRING"
-  },
-  {
-    "mode": "NULLABLE",
+    "mode": "REPEATED",
     "name": "symbols",
     "type": "STRING"
   },
   {
-    "mode": "NULLABLE",
+    "mode": "REPEATED",
     "name": "hashtags",
     "type": "STRING"
   },
@@ -55,9 +35,9 @@
     "type": "STRING"
   },
   {
-    "mode": "NULLABLE",
+    "mode": "REPEATED",
     "name": "user_mentions",
-    "type": "STRING"
+    "type": "INTEGER"
   },
   {
     "mode": "NULLABLE",
@@ -78,11 +58,6 @@
     "mode": "NULLABLE",
     "name": "retweeted",
     "type": "BOOLEAN"
-  },
-  {
-    "mode": "NULLABLE",
-    "name": "retweeted_status",
-    "type": "INTEGER"
   },
   {
     "mode": "NULLABLE",
@@ -115,7 +90,7 @@
     "type": "STRING"
   },
   {
-    "mode": "NULLABLE",
+    "mode": "REPEATED",
     "name": "extended_tweet",
     "type": "STRING"
   },
