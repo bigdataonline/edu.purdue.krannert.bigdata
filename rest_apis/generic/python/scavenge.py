@@ -13,9 +13,8 @@ logging.basicConfig(format='%(asctime)s.%(msecs)03dZ,%(pathname)s:%(lineno)d,%(l
                     datefmt="%Y-%m-%d %H:%M:%S")
 _logger = logging.getLogger(__name__)
 
-_expectedFieldsInFunctionCall=['start','limit','convert']
-_url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest'
-_keyfile = 'coinmarketcap.key'
+_expectedFieldsInFunctionCall=[] # Fields to send as parameters to the REST API.
+_url = 'URL-TO-HIT' # The URL to hit.
 
 def _getMessageJSON(request):
   request_json = request.get_json(force=True)
