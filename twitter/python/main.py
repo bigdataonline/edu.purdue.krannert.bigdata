@@ -174,6 +174,19 @@ class MyListener(StreamListener):
     return entities
   
   @classmethod
+  def _cleanTweet(cls,tweet,delim=None):
+    if delim is None: return tweet
+    cleaned = {}
+    for key, value in tweet.items():
+      if type(value) == list:
+        cleaned[key] = delim.join(map(str, value)) # Convert arrays to delimited string.
+      elif type(value) == dict:
+        cleaned[key] = json.dumps(value) # Convert objects to a JSON string.
+      else:
+        cleaned[key] = value
+    return cleaned
+  
+  @classmethod
   def extractTweet(cls, tweet, query, delim=None):
     '''
     Will process a single tweet and produce one or more records of tweet data. A single tweet may reference a tweet that it is retweeting, in which case this method returns both as tweet data records.
@@ -224,16 +237,7 @@ class MyListener(StreamListener):
       for multivalueField in MyListener._multivalueTweetFields:
         if multivalueField not in tweetRow or tweetRow[multivalueField] is None: tweetRow[multivalueField]=[]
     tweetRow['raw'] = json.dumps(tweet)
-    if delim is not None:
-      # Convert multivalue fields into strings with values separated by delim.
-      tweetRows.append(dict(map(lambda item:
-                               (
-                                 item[0],
-                                 delim.join(map(str,item[1])) if type(item[1])==list else item[1]
-                               ),
-                               tweetRow.items())))
-    else:
-      tweetRows.append(tweetRow)
+    tweetRows.append(cls._cleanTweet(tweetRow,delim=delim))
     return tweetRows
   
   @classmethod
