@@ -142,7 +142,7 @@
   {
     "mode": "NULLABLE",
     "name": "timestamp_ms",
-    "type": "INT64"
+    "type": "STRING"
   },
   {
     "mode": "NULLABLE",
