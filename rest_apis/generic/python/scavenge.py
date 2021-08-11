@@ -73,6 +73,8 @@ class DataProcessor():
     '''
     self._bucket=bucket
     self._path=path
+    self._topic=topic
+    self._projectId=projectId
     if bucket is not None: _logger.debug('Output will be written to {path} in {bucket}.'.format(path=self._path,bucket=self._bucket))
     if topic is not None and projectId is not None: _logger.debug('Output will be published to {topic} in project {projectId}.'.format(topic=topic,projectId=projectId))
 
@@ -114,16 +116,21 @@ class DataProcessor():
     return 0
   
   def _publish(self,data):
-    attributes=data if type(data)==dict else None
-    if attributes is not None:
+    attributes = None
+    if type(data) == dict:
+      attributes = {}
+      for key, value in data.items():
+        if type(value) in [int, float, str, bool]:
+          attributes[key] = value
+    if attributes is not None and len(attributes) > 0:
       # Try to include key-values of data as attributes in the published message.
       try:
-        self._publisher.publish(self._topic, data=json.dumps(data).encode("utf-8"), **attributes)
+        self._publisher.publish('projects/' + self._projectId + '/topics/' + self._topic, data=json.dumps(data).encode("utf-8"), **attributes)
         return 1
       except:
         _logger.debug('Cannot include '+str(attributes)+' as attributes to the message.',exc_info=True)
     try:
-      self._publisher.publish(self._topic, data=json.dumps(data).encode("utf-8"))
+      self._publisher.publish('projects/' + self._projectId + '/topics/' + self._topic, data=json.dumps(data).encode("utf-8"))
       return 1
     except:
       _logger.error('Cannot publish message "'+str(json.dumps(data))+'".',exc_info=True,stack_info=True)
