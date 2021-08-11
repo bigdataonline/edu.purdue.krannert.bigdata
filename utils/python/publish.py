@@ -1,6 +1,7 @@
 import logging
 import json
 import sys
+from pathlib import Path
 
 from google.cloud.pubsub_v1 import PublisherClient
 
@@ -112,17 +113,23 @@ def main():
       return 'Error attempting to access Pub/Sub topic with no project ID.'
     _logger.info('Will submit to {topic}.'.format(topic=topic))
   
-  with open(_columnHeadingsFile) as columnHeadingsContents:
-    columnHeadings=columnHeadingsContents.readline().strip().split(delim)
+  if Path(_columnHeadingsFile).exists():
+    with Path(_columnHeadingsFile).open() as columnHeadingsContents:
+      columnHeadings=columnHeadingsContents.readline().strip().split(delim if delim is not None else ',')
+  else:
+    columnHeadings=None
   
   publisher=Publisher(projectId=projectId,topic=topic,columnHeadings=columnHeadings,debug=_debugLevel,delim=delim)
   numPublished=0
-  with open('datafile.csv') as dataContents:
-    for line in dataContents.readlines():
-      numPublished+=publisher.process(line)
+  if Path(_dataFile).exists():
+    with Path(_dataFile).open() as dataContents:
+      for line in dataContents.readlines():
+        numPublished+=publisher.process(line)
+      _logger.info(
+        'Published {numPublished:d} messages to {topic}.'.format(
+          numPublished=numPublished,
+          topic=topic
+        ))
+  else:
+    _logger.error('Cannot open data file "{datafile}" to read data from.'.format(datafile=_dataFile))
   
-  _logger.info(
-    'Published {numPublished:d} messages to {topic}.'.format(
-      numPublished=numPublished,
-      topic=topic
-    ))
