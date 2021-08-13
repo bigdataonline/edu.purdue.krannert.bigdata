@@ -288,15 +288,13 @@ class MyListener(StreamListener):
         'Must supply a project ID if you want to publish to topic "{topic}".'.format(topic=topic))
       self._topic = ('projects/' + projectId + '/topics/' + topic)
       _logger.debug('Output to Pub/Sub: ' + self._topic)
-    else:
-      self._topic = None
+
     if userTopic is not None:
       if projectId is None: raise Exception(
         'Must supply a project ID if you want to publish to topic "{topic}".'.format(topic=userTopic))
       self._userTopic = ('projects/' + projectId + '/topics/' + userTopic)
       _logger.debug('Output user data to Pub/Sub: ' + self._userTopic)
-    else:
-      self._userTopic = None
+
     self._publisher = None
     self._userPublisher = None
     
@@ -364,9 +362,10 @@ class MyListener(StreamListener):
         if self._publisher is None: self._publisher = PublisherClient()
         for record in tweetRecords:
           try:
-            self._publisher.publish(self._topic, data=json.dumps(record).encode("utf-8"), **record)
+            cleanedRecord=dict(map(lambda key_value:(key_value[0],key_value[1] if type(key_value[1]) in [int,float,bool,str] else str(key_value[1])),record.items()))
+            self._publisher.publish(self._topic, data=json.dumps(record).encode("utf-8"), **cleanedRecord)
           except:
-            self._publisher.publish(self._topic, data=json.dumps(record).encode("utf-8"), query=self.query)
+            self._publisher.publish(self._topic, data=json.dumps(record).encode("utf-8"), query=str(self.query))
       
       if self._userTopic is not None:
         if self._userPublisher is None: self._userPublisher = PublisherClient()
