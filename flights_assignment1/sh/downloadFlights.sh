@@ -36,19 +36,14 @@ for YEAR in `seq -w ${STARTYEAR} ${ENDYEAR}`
 do
     for MONTH in `seq 1 12`
     do
-      DOWNLOADED_FILE=${YEAR}-${MONTH}.zip
-      if [ -f ${DOWNLOADED_FILE} ]; then
-            # If the download file exists...
             echo -n "...Cleaning ${MONTH}/${YEAR}"
-            cat On_Time*${YEAR}_${MONTH}.csv | sed -e 's/,$//g' -e 's/"//g' > ${YEAR}-${MONTH}.csv
-            rm -f ${DOWNLOAD_FILE}
-            rm -f On_Time*${YEAR}_${MONTH}.csv
+            cat *_${YEAR}_${MONTH}.csv | sed -e 's/,$//g' -e 's/"//g' > ${YEAR}-${MONTH}.csv
+            rm -f *_${YEAR}_${MONTH}.csv
             if [ -f ${YEAR}-${MONTH}.csv ]; then
               echo " --> SUCCESS"
             else
               echo " --> ERROR"
             fi
-        fi
     done
 done
 ls -htl *.csv
