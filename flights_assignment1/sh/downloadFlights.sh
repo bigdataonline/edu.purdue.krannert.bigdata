@@ -18,22 +18,20 @@ do
         echo " --> ERROR"
       fi
     done
-done
-ls -htl *.zip
 
-echo "Unzipping data: "
-for zipfile in `ls *-*.zip`
-do
-    echo "...Unzipping ${zipfile}"
-    unzip ${zipfile}
-    rm -f readme.html
-    rm -f ${zipfile}
-done
-ls -htl *.csv
+    ls -htl *.zip
 
-echo "Cleaning data: "
-for YEAR in `seq -w ${STARTYEAR} ${ENDYEAR}`
-do
+    echo "Unzipping data for ${YEAR}: "
+    for zipfile in `ls *-*.zip`
+    do
+	echo "...Unzipping ${zipfile}"
+	unzip ${zipfile}
+	rm -f readme.html
+	rm -f ${zipfile}
+    done
+    ls -htl *.csv
+
+    echo "Cleaning data for ${YEAR}: "
     for MONTH in `seq 1 12`
     do
             echo -n "...Cleaning ${MONTH}/${YEAR}"
