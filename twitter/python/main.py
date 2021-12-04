@@ -17,24 +17,18 @@
 #     -query olympics "swim-dive set"  -limit 25 -bucket mgmt59000_twitter_tweets -user_bucket mgmt59000_twitter_users
 #     This example will search for 25 twitters mentioning olympics and "swim-dive set" and will write the filtered tweets to mgmt59000_twitter_tweets
 #     and any twitter users who wrote the tweets have metadata written to mgmt59000_twitter_users.
-import logging
-import time
-import re
+import argparse
 import datetime
 import json
-import argparse
-import traceback
+import logging
+import re
+import time
 
 import tweepy
-from prompt_toolkit import prompt
-from tweepy import Stream
-from tweepy import OAuthHandler
-from tweepy.streaming import StreamListener
-
+from google.cloud import storage
 from google.cloud.exceptions import Forbidden
 from google.cloud.pubsub_v1 import PublisherClient
-from google.cloud import storage
-from google.oauth2 import service_account
+from tweepy.streaming import StreamListener
 
 logging.basicConfig(format='%(asctime)s.%(msecs)03dZ,%(pathname)s:%(lineno)d,%(levelname)s,%(module)s,%(funcName)s: %(message)s',
                     datefmt="%Y-%m-%d %H:%M:%S")
