@@ -500,8 +500,9 @@ def main(request):
 #  twitter_stream = Stream(twitterAuth, MyListener(projectId, query, limit, topic=topic, userTopic=userTopic, bucket=bucket,
 #                                           userBucket=userBucket,pathInBucket=pathInBuckets,delim=delim,debug=debug))
 #  twitter_stream.filter(track=query)
-  response=json.dumps(messageJSON)+' completed. tweets stored='+str(totalTweetsStored)+',published='+str(totalTweetsPublished)+' users stored='+str(totalUsersStored)+',published='+str(totalUsersPublished)
-  _logger.info(response)
+  statsOutput='tweets stored='+str(totalTweetsStored)+',published='+str(totalTweetsPublished)+' users stored='+str(totalUsersStored)+',published='+str(totalUsersPublished)
+  _logger.info(statsOutput)
+  response=json.dumps(messageJSON)+' completed. '+statsOutput
   return response
 
 if __name__ == '__main__':
