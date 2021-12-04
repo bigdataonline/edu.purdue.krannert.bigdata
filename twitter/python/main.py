@@ -23,8 +23,10 @@ import re
 import datetime
 import json
 import argparse
+import traceback
 
 import tweepy
+from prompt_toolkit import prompt
 from tweepy import Stream
 from tweepy import OAuthHandler
 from tweepy.streaming import StreamListener
@@ -283,6 +285,9 @@ class MyListener(StreamListener):
     
     self.query = query
     self.limit = limit
+    self._topic=None
+    self._userTopic=None
+    
     if topic is not None:
       if projectId is None: raise Exception(
         'Must supply a project ID if you want to publish to topic "{topic}".'.format(topic=topic))
@@ -317,6 +322,7 @@ class MyListener(StreamListener):
       for record in records:
         recordKey = key + (('_' + str(record['id'])) if 'id' in record else '')
         bucketClient.blob(recordKey).upload_from_string(json.dumps(record))
+        _logger.debug('Wrote to '+recordKey)
     except Forbidden as fe:
       try:
         _logger.error('Failed to write to GCS bucket {bucket} because access to object {objectName} is forbidden. Error code={code}, response content={response}'.format(
@@ -346,27 +352,36 @@ class MyListener(StreamListener):
     key += '_' + str(datetime.datetime.now()) + '.json'
     return ('' if self._path is None else self._path+'/')+re.sub(r'[^A-Za-z0-9_.-]', '_', key)
   
-  def on_data(self, data):
-    _logger.debug('Found tweet for '+str(self.query))
+  # tweets -- a dict representing a tweet (parsed with a JSON parser)
+  def parseData(self,tweets):
+    numTweetsStored=0
+    numTweetsPublished=0
+    numUsersStored=0
+    numUsersPublished=0
+    withinLimit=True
     try:
-      tweets = json.loads(data)
       tweetRecords = self.extractTweet(tweets, self.query, delim=self._delim)
       userRecords = self.extractUsers(tweets)
-      
+    
       if self._bucket is not None:
         self._bucketClient = self._writeToBucket(self._bucketClient, self._bucket, tweetRecords)
+        numTweetsStored+=len(tweetRecords)
       if self._userBucket is not None:
         self._userBucketClient = self._writeToBucket(self._userBucketClient, self._userBucket, userRecords)
-      
+        numUsersStored+=len(userRecords)
+    
       if self._topic is not None:
         if self._publisher is None: self._publisher = PublisherClient()
         for record in tweetRecords:
           try:
-            cleanedRecord=dict(map(lambda key_value:(key_value[0],key_value[1] if type(key_value[1]) in [int,float,bool,str] else str(key_value[1])),record.items()))
+            cleanedRecord = dict(map(lambda key_value: (
+            key_value[0], key_value[1] if type(key_value[1]) in [int, float, bool, str] else str(key_value[1])),
+                                     record.items()))
             self._publisher.publish(self._topic, data=json.dumps(record).encode("utf-8"), **cleanedRecord)
           except:
             self._publisher.publish(self._topic, data=json.dumps(record).encode("utf-8"), query=str(self.query))
-      
+          numTweetsPublished+=1
+
       if self._userTopic is not None:
         if self._userPublisher is None: self._userPublisher = PublisherClient()
         for record in userRecords:
@@ -374,14 +389,26 @@ class MyListener(StreamListener):
             self._userPublisher.publish(self._userTopic, data=json.dumps(record).encode("utf-8"), **record)
           except:
             self._userPublisher.publish(self._userTopic, data=json.dumps(record).encode("utf-8"))
-      
+          numUsersPublished+=1
+    
       self.limit -= 1
-      if self.limit <= 0: return False
-      return True
+      if self.limit <= 0: withinLimit=False
+    except:
+      _logger.error('Error in on_data. Sleeping for 5 seconds.', exc_info=True, stack_info=True)
+      time.sleep(5)
+    return (withinLimit,numTweetsStored,numUsersStored,numTweetsPublished,numUsersPublished)
+
+  def on_data(self, data):
+    print('on_data Found tweet')
+    _logger.debug('Found tweet for '+str(self.query))
+    withinLimit=True
+    try:
+      tweets = json.loads(data) if type(data)==str else data
+      withinLimit,numTweetsStored,numUsersStored,numTweetsPublished,numUsersPublished=self.parseData(tweets)
     except:
       _logger.error('Error in on_data. Sleeping for 5 seconds.',exc_info=True,stack_info=True)
       time.sleep(5)
-    return True
+    return withinLimit
   
   def on_error(self, status):
     if status == 420:
@@ -456,17 +483,32 @@ def main(request):
   if any(filter(lambda key:key not in keys,requiredKeys)):
     _logger.error('Cannot read required keys from twitterKeys.json. This file must exist and have the format {"consumer_key":"...","consumer_secret":"...","access_token":"...","access_secret":"..."}.')
     return 'Cannot read required keys from twitterKeys.json'
-  twitterAuth = OAuthHandler(keys['consumer_key'], keys['consumer_secret'])
-  twitterAuth.set_access_token(keys['access_token'], keys['access_secret'])
+
+  twitterAuth=tweepy.AppAuthHandler(keys['consumer_key'], keys['consumer_secret'])
+#  twitterAuth = OAuthHandler(keys['consumer_key'], keys['consumer_secret'])
   
   _logger.debug('Checking rate limit. Will potentially wait until rate limit replenishes...')
-  tweepy.API(twitterAuth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
-  
+  tweepyAPI=tweepy.API(twitterAuth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+  listener=MyListener(projectId, query, limit, topic=topic, userTopic=userTopic, bucket=bucket,userBucket=userBucket,pathInBucket=pathInBuckets,delim=delim,debug=debug)
+
   _logger.debug('Querying for {term}'.format(term=','.join(query)))
-  twitter_stream = Stream(twitterAuth, MyListener(projectId, query, limit, topic=topic, userTopic=userTopic, bucket=bucket,
-                                           userBucket=userBucket,pathInBucket=pathInBuckets,delim=delim,debug=debug))
-  twitter_stream.filter(track=query)
-  return json.dumps(messageJSON)+' completed.'
+  
+  stats=list(map(lambda tweet:listener.parseData(tweet._json),tweepy.Cursor(tweepyAPI.search,q=query).items(limit)))
+  totalTweetsStored=0
+  totalUsersStored=0
+  totalTweetsPublished=0
+  totalUsersPublished=0
+  for withinLimit,numTweetsStored,numUsersStored,numTweetsPublished,numUsersPublished in stats:
+    totalTweetsStored+=numTweetsStored
+    totalUsersStored+=numUsersStored
+    totalTweetsPublished+=numTweetsPublished
+    totalUsersPublished+=numUsersPublished
+#  twitter_stream = Stream(twitterAuth, MyListener(projectId, query, limit, topic=topic, userTopic=userTopic, bucket=bucket,
+#                                           userBucket=userBucket,pathInBucket=pathInBuckets,delim=delim,debug=debug))
+#  twitter_stream.filter(track=query)
+  response=json.dumps(messageJSON)+' completed. tweets stored='+str(totalTweetsStored)+',published='+str(totalTweetsPublished)+' users stored='+str(totalUsersStored)+',published='+str(totalUsersPublished)
+  _logger.info(response)
+  return response
 
 if __name__ == '__main__':
   # To call from the command line, provide two arguments: query, limit.

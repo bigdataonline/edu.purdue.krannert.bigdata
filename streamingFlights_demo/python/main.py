@@ -396,7 +396,7 @@ def main(request,credentials=None):
   numProcessed=_scavengeRows(separateLines=separateLines,
                 bucket=bucket,path=path,
                 projectId=projectId,topic=topic,
-                debug=debug,forAvro=forAvro,limit=int(limit) if limit is not None else None,
+                debug=debug,forAvro= forAvro,limit=int(limit) if limit is not None else None,
                 credentials=credentials)
   return json.dumps(messageJSON)+' handled '+str(numProcessed)+' items.'
 
