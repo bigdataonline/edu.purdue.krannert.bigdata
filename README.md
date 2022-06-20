@@ -24,3 +24,5 @@ This command should state something like:
 
 Then you can run the script (also in BIG_DATA_HOME) that starts Jupyter on your local machine:
 > ./runJupyter.sh
+
+This should open up a page in your web browser showing Jupyter Lab.
