@@ -18,6 +18,7 @@ The requirements.txt file contains a list of all the libraries that the code in 
 In the twitterWithOpenSky_assignement3, there is a Jupyter notebook. You can run the Jupyter notebook and have it recognize the code in the subdirectories (actually, all of those named "python").
 To inform Jupyter of your own virtual environment, execute the following (assuming your virtual environment is named "bigdata_venv") from within BIG_DATA_HOME:
 > python -m ipykernel install --name=bigdata_venv
+
 This command should state something like:
 > Installed kernelspec bigdata_venv in /usr/local/share/jupyter/kernels/bigdata_venv
 
