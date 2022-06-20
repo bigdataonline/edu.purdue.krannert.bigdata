@@ -3,9 +3,12 @@ Within the subdirectories are a mix of shell and python scripts, as well as some
 You will need to use an appropriate IDE or service to be able to make use of the scripts and files to do something meaningful.
 
 To be able to use the Python code within the subdirs, I suggest that you set up a Python virtual environment and install the python dependencies within requirements.txt in the outermost directory. For example:
-1. Download the code as a zip file and unzip the file where you want to install the code, such as a folder named bigdata in Documents or your home directory.
-2. You should be looking at the directory structure above.
-to set up a virtual environment named "bigdata_venv", do the following:
+1. Download the code as a zip file and unzip the file. This will create a folder named edu.purdue.krannert.bigdata-master with all the contents of the zip file expanded.
+1. Move the contents of the expanded folder to where you want to install the code, such as a folder named bigdata in Documents or your home directory.
+1. Change directory to be within the code directory. (In my case, I am in $HOME/CODE/bigdata.)
+1. You should be looking at the directory structure above.
+
+Now, set up a virtual python environment named "bigdata_venv", activate the python environment and install all of the dependencies the code requires.
 1. virtualenv -p python3 bigdata_venv
 1. source bigdata_venv/bin/activate
 1. pip install -r requirements.txt
