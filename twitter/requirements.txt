@@ -1,5 +1,5 @@
 PySocks==1.7.1
-certifi==2019.9.11
+certifi==2022.12.7
 chardet==3.0.4
 google-api-core==1.22.1
 google-auth-oauthlib==0.4.4
